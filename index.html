@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101512">
+  <title>Yossy Money Manager</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">Y</div>
+        <div><strong>Yossy</strong><span>Money Manager</span></div>
+      </div>
+      <div class="side-label">WORKSPACE</div>
+      <button class="nav-item active" type="button"><span>▦</span> ภาพรวมการเงิน</button>
+      <div class="side-note">
+        <span class="status-dot"></span>
+        <div><b>Local mode</b><small>ข้อมูลอยู่บนอุปกรณ์นี้</small></div>
+      </div>
+      <div class="sidebar-bottom">PERSONAL FINANCE<br><small>Web Edition · v1.0</small></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">PERSONAL FINANCE</div>
+          <h1>ภาพรวมการเงิน</h1>
+          <p class="muted">จัดการเงินเดือน รายจ่าย OT และเงินออมของคุณ</p>
+        </div>
+        <div class="top-actions">
+          <label class="month-label" for="monthSelect">เดือนที่แสดง</label>
+          <select id="monthSelect" aria-label="เลือกเดือน"></select>
+          <button class="button secondary" id="importBtn" type="button">↥ อ่าน JSON</button>
+          <button class="button primary" id="exportBtn" type="button">↓ บันทึก JSON</button>
+          <input id="fileInput" type="file" accept=".json,application/json" hidden>
+        </div>
+      </header>
+
+      <section class="summary-grid">
+        <article class="metric-card income-card">
+          <div class="metric-top"><span>รายรับรวม</span><span class="metric-icon">↗</span></div>
+          <div class="metric-value" id="totalIncome">฿0</div>
+          <div class="metric-foot">เงินเดือน + OT + รายรับอื่น</div>
+        </article>
+        <article class="metric-card expense-card">
+          <div class="metric-top"><span>รายจ่ายรวม</span><span class="metric-icon">↘</span></div>
+          <div class="metric-value" id="totalExpenses">฿0</div>
+          <div class="metric-foot">รวมรายการใช้จ่ายในเดือนนี้</div>
+        </article>
+        <article class="metric-card saving-card">
+          <div class="metric-top"><span>เงินออม</span><span class="metric-icon">◇</span></div>
+          <div class="metric-value" id="totalSavings">฿0</div>
+          <div class="metric-foot">ยอดเงินที่ตั้งใจเก็บ</div>
+        </article>
+        <article class="metric-card balance-card">
+          <div class="metric-top"><span>เงินคงเหลือ</span><span class="metric-icon">◎</span></div>
+          <div class="metric-value" id="balance">฿0</div>
+          <div class="metric-foot">รายรับ − รายจ่าย − เงินออม</div>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="panel">
+          <div class="panel-heading">
+            <div><h2>รายรับประจำเดือน</h2><p class="muted">แก้ไขตัวเลขได้โดยตรง</p></div>
+            <span class="pill">INCOME</span>
+          </div>
+          <div class="field-grid">
+            <label>เงินเดือนประจำ (บาท)<input id="salaryInput" type="number" min="0" step="1"></label>
+            <label>รายได้ OT (บาท)<input id="otInput" type="number" min="0" step="1"></label>
+            <label>รายรับอื่น (บาท)<input id="otherInput" type="number" min="0" step="1"></label>
+            <label>เงินออม (บาท)<input id="savingsInput" type="number" min="0" step="1"></label>
+          </div>
+          <div class="hint">* เปลี่ยนค่าแล้วระบบจะคำนวณยอดรวมให้อัตโนมัติ</div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div><h2>งบประมาณรายวัน</h2><p class="muted">คำนวณจากวันที่เหลือในเดือน</p></div>
+            <span class="pill green-pill">DAILY</span>
+          </div>
+          <div class="daily-number" id="dailyBudget">฿0</div>
+          <p class="muted" id="dailyCaption">เงินคงเหลือ ÷ จำนวนวันที่เหลือ</p>
+          <div class="progress-track"><div id="budgetProgress" class="progress-fill"></div></div>
+          <div class="progress-meta"><span>ใช้จ่ายแล้ว</span><b id="expensePercent">0%</b></div>
+          <div class="hint" id="monthDays"></div>
+        </article>
+      </section>
+
+      <section class="panel expenses-panel">
+        <div class="panel-heading expense-heading">
+          <div><h2>รายการรายจ่าย</h2><p class="muted">เพิ่ม แก้ไข หรือลบรายการในเดือนที่เลือก</p></div>
+          <button class="button primary" id="addExpenseBtn" type="button">＋ เพิ่มรายจ่าย</button>
+        </div>
+        <form id="expenseForm" class="expense-form" hidden>
+          <input id="expenseId" type="hidden">
+          <label>ชื่อรายการ<input id="expenseName" type="text" placeholder="เช่น ค่าอาหาร" required></label>
+          <label>จำนวนเงิน<input id="expenseAmount" type="number" min="0" step="1" placeholder="0" required></label>
+          <label>หมวดหมู่<select id="expenseCategory">
+            <option value="Housing">ที่พัก</option><option value="Utilities">น้ำ / ไฟ</option>
+            <option value="Vehicle">รถ</option><option value="Food">อาหาร</option>
+            <option value="Transportation">เดินทาง</option><option value="Family">ครอบครัว</option>
+            <option value="Internet">อินเทอร์เน็ต</option><option value="Shopping">ซื้อของ</option>
+            <option value="Personal">ส่วนตัว</option><option value="Other">อื่น ๆ</option>
+          </select></label>
+          <div class="form-actions"><button class="button secondary" id="cancelExpenseBtn" type="button">ยกเลิก</button><button class="button primary" type="submit">บันทึกรายการ</button></div>
+        </form>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>รายการ</th><th>หมวดหมู่</th><th class="right">จำนวนเงิน</th><th class="right">จัดการ</th></tr></thead>
+            <tbody id="expenseRows"></tbody>
+          </table>
+          <div class="empty-state" id="emptyState" hidden>ยังไม่มีรายจ่ายในเดือนนี้</div>
+        </div>
+        <div class="table-total"><span>รวมรายจ่าย</span><strong id="tableTotal">฿0</strong></div>
+      </section>
+
+      <footer class="footer">
+        <span>Yossy Money Manager</span>
+        <span id="saveStatus">พร้อมใช้งาน · ข้อมูลจะถูกเก็บในเบราว์เซอร์ชั่วคราว</span>
+      </footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
